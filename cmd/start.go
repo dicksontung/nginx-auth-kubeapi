@@ -153,7 +153,7 @@ func httpHandleGetRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	trJSON, err := json.Marshal(trReq)
 	if err != nil {
-		handleHttpError(500, err, w, r)
+		handleHttpError(401, err, w, r)
 		return
 	}
 
@@ -161,7 +161,7 @@ func httpHandleGetRoot(w http.ResponseWriter, r *http.Request) {
 	url := fmt.Sprintf("%s/apis/authentication.k8s.io/v1/tokenreviews", strings.TrimSuffix(kubeApiAddr, "/"))
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(trJSON))
 	if err != nil {
-		handleHttpError(500, err, w, r)
+		handleHttpError(401, err, w, r)
 		return
 	}
 	// If we have a configured TokenReviewer JWT use it as the bearer, otherwise
@@ -181,7 +181,7 @@ func httpHandleGetRoot(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		handleHttpError(500, err, w, r)
+		handleHttpError(401, err, w, r)
 		return
 	}
 
@@ -196,11 +196,11 @@ func httpHandleGetRoot(w http.ResponseWriter, r *http.Request) {
 		handleHttpError(401, errors.New("lookup failed: service account unauthorized; this could mean it has been deleted or recreated with a new serviceAccountToken"), w, r)
 		return
 	case err != nil:
-		handleHttpError(500, err, w, r)
+		handleHttpError(401, err, w, r)
 	}
 
 	if response.Status.Error != "" {
-		handleHttpError(500, fmt.Errorf("lookup failed: %s", response.Status.Error), w, r)
+		handleHttpError(401, fmt.Errorf("lookup failed: %s", response.Status.Error), w, r)
 		return
 	}
 
@@ -228,7 +228,7 @@ func httpHandleGetRoot(w http.ResponseWriter, r *http.Request) {
 	}
 	body, err := json.Marshal(response.Status)
 	if err != nil {
-		handleHttpError(500, err, w, r)
+		handleHttpError(401, err, w, r)
 		return
 	}
 	log.Printf("ok: %v", response.Status)
